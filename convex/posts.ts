@@ -3,11 +3,16 @@ import { v } from "convex/values";
 
 // ─── Helper auth ─────────────────────────────────────────────────────────────
 /** Lance une erreur 401 si l'appelant n'est pas authentifié via Clerk. */
-async function requireAuth(ctx: { auth: { getUserIdentity(): Promise<unknown> } }) {
+async function requireAuth(ctx: { auth: { getUserIdentity(): Promise<any> } }) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Non autorisé : vous devez être connecté pour effectuer cette action.");
+    throw new Error("Não autorizado: você deve estar logado para realizar esta ação.");
   }
+  
+  if (identity.email !== "glwebagency2@gmail.com") {
+    throw new Error("Acesso negado: apenas o administrador (glwebagency2@gmail.com) pode acessar esta área.");
+  }
+
   return identity;
 }
 
