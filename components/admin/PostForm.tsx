@@ -13,21 +13,21 @@ import { useState } from "react";
 const postSchema = z.object({
   title: z
     .string()
-    .min(10, "Le titre doit comporter au moins 10 caractères.")
-    .max(120, "Titre trop long (120 car. max)."),
+    .min(10, "O título deve conter pelo menos 10 caracteres.")
+    .max(120, "Título muito longo (máx. 120 caracteres)."),
   slug: z
     .string()
     .min(3)
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug invalide : minuscules, chiffres et tirets uniquement."
+      "Slug inválido: use apenas letras minúsculas, números e hifens."
     ),
   question: z
     .string()
-    .min(10, "La question doit être explicite (10 car. min).")
+    .min(10, "A pergunta deve ser explícita (mín. 10 caracteres).")
     .max(200),
   metaDescription: z.string().max(160).optional(),
-  content: z.string().min(100, "Le contenu doit faire au moins 100 caractères."),
+  content: z.string().min(100, "O conteúdo deve conter pelo menos 100 caracteres."),
   category: z.string().optional(),
   tags: z.string().optional(),
   authorName: z.string().optional(),
@@ -91,9 +91,9 @@ export default function PostForm() {
 
     try {
       // 1. Upload de l'image vers UploadThing
-      if (!imageFile) throw new Error("Veuillez sélectionner une image.");
+      if (!imageFile) throw new Error("Por favor, selecione uma imagem de capa.");
       const uploaded = await startUpload([imageFile]);
-      if (!uploaded?.[0]?.url) throw new Error("L'upload de l'image a échoué.");
+      if (!uploaded?.[0]?.url) throw new Error("Falha no envio da imagem.");
       const imageUrl = uploaded[0].url;
 
       // 2. Créer le post dans Convex (en brouillon — isPublished: false)
@@ -112,27 +112,11 @@ export default function PostForm() {
         authorName: data.authorName,
       });
 
-      /**
-       * SEO FIX : on ne déclenche PAS l'indexation Google ici.
-       * Le post vient d'être créé en brouillon (isPublished: false).
-       * Si Googlebot tentait de crawler /blog/[slug], il recevrait un 404,
-       * ce qui nuit au crawl budget et au score SEO du domaine.
-       *
-       * L'indexation Google est déclenchée UNIQUEMENT depuis PostActionsClient
-       * au moment où l'admin clique sur "Publier" (togglePublish → isPublished: true).
-       */
-
       // 3. Redirection vers le dashboard — succès
       router.push("/admin");
       router.refresh();
     } catch (err: unknown) {
-      /**
-       * BUG FIX : on distingue les erreurs critiques (upload, Convex) des erreurs
-       * non-bloquantes (Google Indexing). Seules les erreurs critiques bloquent le flux.
-       * Si une erreur survient ici, le post n'a pas encore été inséré (l'upload ou
-       * Convex a échoué avant), donc l'utilisateur peut réessayer sans conflit de slug.
-       */
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setError(err instanceof Error ? err.message : "Ocorreu um erro inesperado.");
     } finally {
       setIsSubmitting(false);
     }
@@ -147,7 +131,7 @@ export default function PostForm() {
         </div>
       )}
 
-      {/* Avertissement non-bloquant (indexation Google échouée après création réussie) */}
+      {/* Avertissement non-bloquant */}
       {indexingWarning && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3 text-sm">
           ⚠️ {indexingWarning}
@@ -157,12 +141,12 @@ export default function PostForm() {
       {/* Titre */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Titre <span className="text-red-500">*</span>
+          Título <span className="text-red-500">*</span>
         </label>
         <input
           {...register("title")}
           onBlur={handleTitleBlur}
-          placeholder="Ex: Comment optimiser son référencement SEO en 2025 ?"
+          placeholder="Ex: Como praticar BDSM com segurança e consentimento"
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {errors.title && (
@@ -173,7 +157,7 @@ export default function PostForm() {
       {/* Slug */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Slug URL <span className="text-red-500">*</span>
+          Slug da URL <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
           <span className="px-3 py-2.5 bg-slate-50 text-slate-400 text-sm border-r border-slate-200">
@@ -181,7 +165,7 @@ export default function PostForm() {
           </span>
           <input
             {...register("slug")}
-            placeholder="mon-article-seo"
+            placeholder="guia-seguranca-bdsm"
             className="flex-1 px-3 py-2.5 text-sm focus:outline-none"
           />
         </div>
@@ -193,14 +177,14 @@ export default function PostForm() {
       {/* Question centrale (SEO FAQ) */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Question centrale <span className="text-red-500">*</span>
+          Pergunta Central <span className="text-red-500">*</span>
           <span className="ml-2 text-xs font-normal text-slate-400">
             (FAQ Schema + Featured Snippets)
           </span>
         </label>
         <input
           {...register("question")}
-          placeholder="Ex: Quels sont les meilleurs outils SEO gratuits ?"
+          placeholder="Ex: Quais são as principais regras de segurança no BDSM?"
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {errors.question && (
@@ -211,13 +195,13 @@ export default function PostForm() {
       {/* Meta description */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Meta description{" "}
-          <span className="text-xs font-normal text-slate-400">(max 160 car.)</span>
+          Meta Description{" "}
+          <span className="text-xs font-normal text-slate-400">(máx 160 caract.)</span>
         </label>
         <textarea
           {...register("metaDescription")}
           rows={2}
-          placeholder="Description concise pour les SERPs…"
+          placeholder="Descrição concisa para os resultados de busca (Google)…"
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
         />
         {errors.metaDescription && (
@@ -230,9 +214,9 @@ export default function PostForm() {
       {/* Image */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Image hero <span className="text-red-500">*</span>
+          Imagem de Capa (Hero) <span className="text-red-500">*</span>
           <span className="ml-2 text-xs font-normal text-slate-400">
-            (WebP/AVIF automatique — critère LCP)
+            (WebP/AVIF automático — critério LCP)
           </span>
         </label>
         <input
@@ -244,13 +228,13 @@ export default function PostForm() {
         {imagePreview && (
           <img
             src={imagePreview}
-            alt="Aperçu"
+            alt="Pré-visualização"
             className="mt-3 w-full max-h-48 object-cover rounded-lg border border-slate-200"
           />
         )}
         <input
           {...register("imageAlt")}
-          placeholder="Texte alternatif (alt) de l'image"
+          placeholder="Texto alternativo (alt) da imagem"
           className="mt-2 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
@@ -258,15 +242,15 @@ export default function PostForm() {
       {/* Contenu */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Contenu (HTML) <span className="text-red-500">*</span>
+          Conteúdo (HTML) <span className="text-red-500">*</span>
           <span className="ml-2 text-xs font-normal text-slate-400">
-            Pyramide inversée : réponse brute en premier paragraphe
+            Pirâmide invertida: resposta direta no primeiro parágrafo
           </span>
         </label>
         <textarea
           {...register("content")}
           rows={12}
-          placeholder="<p>La réponse directe en premier…</p><h2>Développement…</h2>"
+          placeholder="<p>A resposta direta no início…</p><h2>Desenvolvimento…</h2>"
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500 resize-y"
         />
         {errors.content && (
@@ -278,11 +262,11 @@ export default function PostForm() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1">
-            Catégorie
+            Categoria
           </label>
           <input
             {...register("category")}
-            placeholder="Ex: SEO, Marketing, Tech"
+            placeholder="Ex: Shibari, Fetiche, Guias"
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
@@ -290,12 +274,12 @@ export default function PostForm() {
           <label className="block text-sm font-semibold text-slate-700 mb-1">
             Tags{" "}
             <span className="text-xs font-normal text-slate-400">
-              (séparés par des virgules)
+              (separadas por vírgula)
             </span>
           </label>
           <input
             {...register("tags")}
-            placeholder="seo, google, contenu"
+            placeholder="bdsm, fetiche, seguranca"
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
@@ -304,20 +288,19 @@ export default function PostForm() {
       {/* Auteur */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-1">
-          Auteur
+          Autor
         </label>
         <input
           {...register("authorName")}
-          placeholder="Expert Portail Paris"
+          placeholder="Especialista BDSM BRASIL"
           className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
       {/* Note info sur le workflow de publication */}
       <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-xs text-blue-700">
-        ℹ️ L'article sera créé en <strong>brouillon</strong>. L'indexation Google sera
-        déclenchée automatiquement lors de la <strong>publication</strong> depuis le
-        tableau de bord admin.
+        ℹ️ O artigo será criado como <strong>rascunho</strong>. A indexação no Google será
+        acionada automaticamente ao <strong>publicar</strong> o artigo a partir do painel de administração.
       </div>
 
       {/* Submit */}
@@ -327,8 +310,8 @@ export default function PostForm() {
         className="w-full py-3 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting || isUploading
-          ? "Création en cours…"
-          : "Créer l'article (brouillon)"}
+          ? "Criando artigo..."
+          : "Criar Artigo (Rascunho)"}
       </button>
     </form>
   );

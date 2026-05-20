@@ -10,16 +10,16 @@ export default async function BlogPage() {
     <div className="max-w-6xl mx-auto px-4 py-16">
       <header className="mb-12">
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-2 font-heading">
-          Tous nos articles
+          Todos os artigos
         </h1>
         <p className="text-lg text-slate-600">
-          Explorez notre base de connaissances sur le SEO sémantique et la publication de contenus optimisés.
+          Explore nosso portal de conhecimento sobre BDSM, fetiche e cultura alternativa no Brasil.
         </p>
       </header>
 
       {posts.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
-          Aucun article publié pour le moment.
+          Nenhum artigo publicado no momento.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -52,18 +52,18 @@ export default async function BlogPage() {
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
                   <time className="text-xs text-slate-400">
                     {post.publishedAt
-                      ? new Date(post.publishedAt).toLocaleDateString("fr-FR", {
+                      ? new Date(post.publishedAt).toLocaleDateString("pt-BR", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })
-                      : "Brouillon"}
+                      : "Rascunho"}
                   </time>
                   <Link
                     href={`/blog/${post.slug}`}
                     className="text-sm font-semibold text-brand-500 hover:text-brand-600 inline-flex items-center gap-1 group"
                   >
-                    Lire l'article
+                    Ler artigo
                     <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                   </Link>
                 </div>

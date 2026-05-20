@@ -7,17 +7,17 @@ export default function NewPostPage() {
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 font-heading">
-            Créer un Nouvel Article
+            Criar Novo Artigo
           </h1>
           <p className="text-slate-600 text-sm mt-1">
-            Remplissez les détails ci-dessous pour créer un article optimisé SEO sémantique.
+            Preencha os detalhes abaixo para criar um artigo otimizado para SEO semântico.
           </p>
         </div>
         <Link
           href="/admin"
           className="text-sm font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-all"
         >
-          ← Retour
+          ← Voltar
         </Link>
       </header>
 

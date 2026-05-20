@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // FIX SEO : on vérifie isPublished ici aussi — évite d'exposer les métadonnées
   // d'un brouillon alors que la page renverrait un 404.
-  if (!post || !post.isPublished) return { title: "Article non trouvé" };
+  if (!post || !post.isPublished) return { title: "Artigo não encontrado" };
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://votre-portail.com";
@@ -33,10 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: post.title,
     description:
       post.metaDescription ??
-      `Découvrez la réponse experte à : ${post.question}`,
+      `Descubra a resposta especializada para: ${post.question}`,
     openGraph: {
       title: post.title,
-      description: post.metaDescription ?? `Réponse à : ${post.question}`,
+      description: post.metaDescription ?? `Resposta para: ${post.question}`,
       images: [{ url: post.image, alt: post.imageAlt ?? post.title }],
       type: "article",
       publishedTime: post.publishedAt
@@ -80,7 +80,7 @@ export default async function BlogPostPage({ params }: Props) {
         {/* Pyramide inversée : réponse directe en premier (Perplexity + Featured Snippets) */}
         <div className="bg-blue-50 border-l-4 border-brand-500 p-4 rounded-r-lg mb-6">
           <p className="text-sm font-semibold text-brand-700 mb-1">
-            Question centrale
+            Questão Central
           </p>
           <p className="text-blue-900 font-medium">{post.question}</p>
         </div>
@@ -90,8 +90,8 @@ export default async function BlogPostPage({ params }: Props) {
             dateTime={new Date(post.publishedAt).toISOString()}
             className="text-sm text-slate-500"
           >
-            Publié le{" "}
-            {new Date(post.publishedAt).toLocaleDateString("fr-FR", {
+            Publicado em{" "}
+            {new Date(post.publishedAt).toLocaleDateString("pt-BR", {
               year: "numeric",
               month: "long",
               day: "numeric",

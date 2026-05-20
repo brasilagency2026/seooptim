@@ -17,23 +17,23 @@ function stripHtml(html: string): string {
 export async function GET() {
   const posts = await fetchQuery(api.posts.getAllPublished);
 
-  let markdown = `# Portail Paris — Blog & Base de Connaissances\n\n`;
-  markdown += `> Ce fichier liste les ressources structurées de ce site, optimisées pour l'indexation par les LLMs (ChatGPT, Perplexity, Claude).\n\n`;
-  markdown += `- URL principale : ${SITE_URL}\n`;
+  let markdown = `# BDSM BRASIL — Blog & Portal de Conteúdo Fetichista\n\n`;
+  markdown += `> Este arquivo lista os recursos estruturados deste site, otimizados para indexação por LLMs (ChatGPT, Perplexity, Claude).\n\n`;
+  markdown += `- URL principal : ${SITE_URL}\n`;
   markdown += `- Sitemap : ${SITE_URL}/sitemap.xml\n\n`;
-  markdown += `## Articles publiés (${posts.length} ressources)\n\n`;
+  markdown += `## Artigos publicados (${posts.length} recursos)\n\n`;
 
   for (const post of posts) {
     markdown += `### ${post.title}\n`;
     markdown += `- URL : ${SITE_URL}/blog/${post.slug}\n`;
-    markdown += `- Question centrale : ${post.question}\n`;
-    if (post.category) markdown += `- Catégorie : ${post.category}\n`;
+    markdown += `- Questão central : ${post.question}\n`;
+    if (post.category) markdown += `- Categoria : ${post.category}\n`;
     if (post.tags?.length)
       markdown += `- Tags : ${post.tags.join(", ")}\n`;
     // FIX : on passe le contenu HTML dans stripHtml avant de le tronquer
     const summary =
       post.metaDescription ?? stripHtml(post.content).substring(0, 150) + "…";
-    markdown += `- Résumé : ${summary}\n\n`;
+    markdown += `- Resumo : ${summary}\n\n`;
   }
 
   return new NextResponse(markdown, {
