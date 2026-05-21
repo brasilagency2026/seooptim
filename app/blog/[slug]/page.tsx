@@ -29,7 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://votre-portail.com";
 
+  // Force absolute URL for OpenGraph crawler
+  const imageUrl = post.image.startsWith("http")
+    ? post.image
+    : `${siteUrl}${post.image.startsWith("/") ? "" : "/"}${post.image}`;
+
   return {
+    metadataBase: new URL(siteUrl),
     title: post.title,
     description:
       post.metaDescription ??
@@ -37,7 +43,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: post.title,
       description: post.metaDescription ?? `Resposta para: ${post.question}`,
-      images: [{ url: post.image, alt: post.imageAlt ?? post.title }],
+      url: `${siteUrl}/blog/${post.slug}`,
+      siteName: "BDSM BRASIL",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.imageAlt ?? post.title,
+        },
+      ],
       type: "article",
       publishedTime: post.publishedAt
         ? new Date(post.publishedAt).toISOString()
@@ -46,7 +61,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      images: [post.image],
+      description: post.metaDescription ?? `Resposta para: ${post.question}`,
+      images: [imageUrl],
     },
     alternates: {
       canonical: `${siteUrl}/blog/${post.slug}`,
