@@ -1,7 +1,7 @@
 export default {
   providers: [
     {
-      domain: "https://rare-mosquito-60.clerk.accounts.dev",
+      domain: "https://clerk.blog.bdsmbrazil.com.br",
       applicationID: "convex",
     },
   ]
