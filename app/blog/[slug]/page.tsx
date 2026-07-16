@@ -131,7 +131,7 @@ export default async function BlogPostPage({ params }: Props) {
       {/* ── Corps de l'article ── */}
       <div
         className="prose prose-slate prose-lg max-w-none prose-headings:font-heading prose-a:text-brand-500 prose-a:no-underline hover:prose-a:underline"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: post.content.replace(/<h1([^>]*)>/g, '<h2$1>').replace(/<\/h1>/g, '</h2>') }}
       />
 
       {/* ── Tags ── */}
