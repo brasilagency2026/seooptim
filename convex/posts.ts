@@ -85,6 +85,17 @@ export const getAllAdmin = query({
 // ─── MUTATIONS ──────────────────────────────────────────────────────────────
 
 /**
+ * Génère une URL d'upload temporaire pour le stockage natif Convex.
+ * Permet d'envoyer l'image directement dans Convex (visible dans l'onglet Files).
+ */
+export const generateUploadUrl = mutation({
+  handler: async (ctx) => {
+    await requireAuth(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/**
  * Crée un nouveau post en brouillon.
  * FIX SÉCURITÉ : vérification Clerk avant toute écriture.
  * FIX SEO : isPublished reste false — l'indexation Google est déclenchée
@@ -96,7 +107,8 @@ export const createPost = mutation({
     slug: v.string(),
     question: v.string(),
     content: v.string(),
-    image: v.string(),
+    image: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
     imageAlt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     category: v.optional(v.string()),
@@ -116,8 +128,30 @@ export const createPost = mutation({
       throw new Error(`Un post avec le slug "${args.slug}" existe déjà.`);
     }
 
+    let finalImageUrl = args.image ?? "";
+    if (args.storageId) {
+      const url = await ctx.storage.getUrl(args.storageId);
+      if (url) {
+        finalImageUrl = url;
+      }
+    }
+
+    if (!finalImageUrl) {
+      throw new Error("Uma imagem de capa é obrigatória.");
+    }
+
     const id = await ctx.db.insert("posts", {
-      ...args,
+      title: args.title,
+      slug: args.slug,
+      question: args.question,
+      content: args.content,
+      image: finalImageUrl,
+      storageId: args.storageId,
+      imageAlt: args.imageAlt,
+      metaDescription: args.metaDescription,
+      category: args.category,
+      tags: args.tags,
+      authorName: args.authorName,
       isPublished: false, // Brouillon — Google Indexing déclenché à la publication
       publishedAt: undefined,
       updatedAt: Date.now(),
@@ -153,6 +187,7 @@ export const updatePost = mutation({
     question: v.optional(v.string()),
     content: v.optional(v.string()),
     image: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
     imageAlt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     category: v.optional(v.string()),
@@ -160,8 +195,25 @@ export const updatePost = mutation({
   },
   handler: async (ctx, args) => {
     await requireAuth(ctx);
-    const { id, ...fields } = args;
-    await ctx.db.patch(id, { ...fields, updatedAt: Date.now() });
+    const { id, storageId, ...fields } = args;
+    const post = await ctx.db.get(id);
+    if (!post) throw new Error("Artigo não encontrado.");
+
+    let updateData: any = { ...fields, updatedAt: Date.now() };
+
+    if (storageId) {
+      const url = await ctx.storage.getUrl(storageId);
+      if (url) {
+        updateData.image = url;
+        updateData.storageId = storageId;
+      }
+      // Supprime l'ancien fichier Convex s'il y en avait un différent
+      if (post.storageId && post.storageId !== storageId) {
+        await ctx.storage.delete(post.storageId);
+      }
+    }
+
+    await ctx.db.patch(id, updateData);
   },
 });
 
@@ -170,6 +222,10 @@ export const deletePost = mutation({
   args: { id: v.id("posts") },
   handler: async (ctx, args) => {
     await requireAuth(ctx);
+    const post = await ctx.db.get(args.id);
+    if (post?.storageId) {
+      await ctx.storage.delete(post.storageId);
+    }
     await ctx.db.delete(args.id);
   },
 });

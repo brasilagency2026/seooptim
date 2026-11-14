@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUploadThing } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -48,8 +47,8 @@ function slugify(str: string): string {
 
 export default function PostForm() {
   const router = useRouter();
+  const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
   const createPost = useMutation(api.posts.createPost);
-  const { startUpload, isUploading } = useUploadThing("postImage");
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -90,19 +89,34 @@ export default function PostForm() {
     setIndexingWarning(null);
 
     try {
-      // 1. Upload de l'image vers UploadThing
       if (!imageFile) throw new Error("Por favor, selecione uma imagem de capa.");
-      const uploaded = await startUpload([imageFile]);
-      if (!uploaded?.[0]?.url) throw new Error("Falha no envio da imagem.");
-      const imageUrl = uploaded[0].url;
 
-      // 2. Créer le post dans Convex (en brouillon — isPublished: false)
+      // 1. Obtenir l'URL d'upload Convex
+      const postUrl = await generateUploadUrl();
+
+      // 2. Envoyer le fichier directement dans le stockage natif Convex
+      const uploadRes = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": imageFile.type },
+        body: imageFile,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Falha no envio da imagem para o armazenamento Convex.");
+      }
+
+      const { storageId } = await uploadRes.json();
+      if (!storageId) {
+        throw new Error("Nenhum ID de armazenamento retornado pelo Convex.");
+      }
+
+      // 3. Créer le post dans Convex (en brouillon — isPublished: false)
       await createPost({
         title: data.title,
         slug: data.slug,
         question: data.question,
         content: data.content,
-        image: imageUrl,
+        storageId: storageId,
         imageAlt: data.imageAlt,
         metaDescription: data.metaDescription,
         category: data.category,
@@ -112,7 +126,7 @@ export default function PostForm() {
         authorName: data.authorName,
       });
 
-      // 3. Redirection vers le dashboard — succès
+      // 4. Redirection vers le dashboard — succès
       router.push("/admin");
       router.refresh();
     } catch (err: unknown) {
@@ -306,11 +320,11 @@ export default function PostForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting || isUploading}
+        disabled={isSubmitting}
         className="w-full py-3 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting || isUploading
-          ? "Criando artigo..."
+        {isSubmitting
+          ? "Enviando imagem e criando artigo..."
           : "Criar Artigo (Rascunho)"}
       </button>
     </form>

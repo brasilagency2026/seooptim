@@ -7,7 +7,8 @@ export default defineSchema({
     slug: v.string(),
     question: v.string(),    // La question centrale SEO (format FAQ)
     content: v.string(),     // Corps de l'article (HTML ou Markdown)
-    image: v.string(),       // URL CDN (UploadThing ou Cloudinary)
+    image: v.string(),       // URL publique (Convex storage, UploadThing, etc.)
+    storageId: v.optional(v.id("_storage")), // ID natif dans le stockage Convex (onglet Files)
     imageAlt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     isPublished: v.boolean(),
