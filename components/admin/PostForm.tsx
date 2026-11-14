@@ -129,8 +129,9 @@ export default function PostForm() {
       // 4. Redirection vers le dashboard — succès
       router.push("/admin");
       router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ocorreu um erro inesperado.");
+    } catch (err: any) {
+      const msg = err?.data ?? err?.message ?? "Ocorreu um erro inesperado.";
+      setError(typeof msg === "string" ? msg : "Ocorreu um erro inesperado.");
     } finally {
       setIsSubmitting(false);
     }

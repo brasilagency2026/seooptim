@@ -1,16 +1,16 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 
 // ─── Helper auth ─────────────────────────────────────────────────────────────
 /** Lance une erreur 401 si l'appelant n'est pas authentifié via Clerk. */
 async function requireAuth(ctx: { auth: { getUserIdentity(): Promise<any> } }) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Não autorizado: você deve estar logado para realizar esta ação.");
+    throw new ConvexError("Não autorizado: você deve estar logado para realizar esta ação.");
   }
   
   if (identity.email !== "glwebagency2@gmail.com") {
-    throw new Error("Acesso negado: apenas o administrador (glwebagency2@gmail.com) pode acessar esta área.");
+    throw new ConvexError("Acesso negado: apenas o administrador (glwebagency2@gmail.com) pode acessar esta área.");
   }
 
   return identity;
@@ -125,7 +125,12 @@ export const createPost = mutation({
       .first();
 
     if (existing) {
-      throw new Error(`Un post avec le slug "${args.slug}" existe déjà.`);
+      if (args.storageId) {
+        await ctx.storage.delete(args.storageId);
+      }
+      throw new ConvexError(
+        `Já existe um artigo com o slug "${args.slug}". Por favor, escolha outro título ou altere o slug.`
+      );
     }
 
     let finalImageUrl = args.image ?? "";
@@ -137,7 +142,10 @@ export const createPost = mutation({
     }
 
     if (!finalImageUrl) {
-      throw new Error("Uma imagem de capa é obrigatória.");
+      if (args.storageId) {
+        await ctx.storage.delete(args.storageId);
+      }
+      throw new ConvexError("Uma imagem de capa é obrigatória.");
     }
 
     const id = await ctx.db.insert("posts", {
